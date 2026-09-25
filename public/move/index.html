@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="Strange Loop Parade: an endless marching band climbing an impossible Penrose stair, cut to a drone soundtrack with slot-machine and anime effects. By RM.">
-<meta property="og:title" content="Strange Loop Parade">
-<meta property="og:description" content="An endless marching band climbing an impossible Penrose stair. By RM.">
-<meta property="og:url" content="https://infinite-stairs.moldandyeast.com/">
+<meta property="og:title" content="Strange Loop Parade · Move">
+<meta property="og:description" content="Conduct the endless marching band with your body. Camera stays on your device. By RM.">
+<meta property="og:url" content="https://infinite-stairs.moldandyeast.com/move/">
 <meta name="twitter:creator" content="@nilsedison">
-<title>Strange Loop Parade</title>
+<title>Strange Loop Parade · Move</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Dela+Gothic+One&family=JetBrains+Mono:wght@500;700&display=swap">
@@ -57,6 +57,25 @@ body{margin:0;background:#12071F;overflow:hidden}
 #byline a:hover{color:var(--pink);border-color:var(--pink)}
 #byline a:focus-visible{outline:2px solid var(--paper);outline-offset:3px}
 @media (max-width:480px){#byline{font-size:10px;gap:4px 6px}#byline>*{padding:5px 8px}}
+#go small{display:block;font:500 10px/1.2 "JetBrains Mono",monospace;letter-spacing:.06em;text-transform:none;opacity:.8;margin-top:4px}
+#go{flex-direction:column;align-items:center;gap:0;padding:12px 22px}
+#go i{margin-bottom:6px}
+#cam{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:-10px;top:-10px}
+#bodyBtn{position:fixed;right:calc(max(14px,env(safe-area-inset-right)) + 104px);bottom:calc(14px + env(safe-area-inset-bottom,0px));padding:10px 14px;border-radius:999px;border:2px solid var(--pink);background:rgba(26,11,46,.85);color:var(--pink);font:700 12px/1 "JetBrains Mono",monospace;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;z-index:3}
+#bodyBtn[aria-pressed="true"]{background:var(--pink);color:#fff}
+#bodyBtn:disabled{opacity:.6;cursor:progress}
+#bodyBtn:focus-visible{outline:2px solid var(--paper);outline-offset:3px}
+#pip{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:calc(14px + env(safe-area-inset-bottom,0px));width:160px;height:120px;border-radius:10px;border:2px solid var(--gold);background:rgba(26,11,46,.75);z-index:3;opacity:0;transition:opacity .4s;pointer-events:none}
+#pip.on{opacity:1}
+#pip.hide{opacity:0}
+#bodyMsg{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:min(92vw,520px);padding:8px 14px;border-radius:8px;background:rgba(26,11,46,.9);border:1.5px solid var(--gold);color:var(--paper);font:500 12px/1.4 "JetBrains Mono",monospace;text-align:center;z-index:4}
+#bodyMsg[hidden]{display:none}
+.knob.live{pointer-events:none;position:relative}
+.knob.live::after{content:"";position:absolute;top:2px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--pink);box-shadow:0 0 8px var(--pink)}
+.knob.live em{color:var(--pink)}
+body:has(#deck:not([hidden])) #pip{bottom:auto;top:calc(56px + env(safe-area-inset-top,0px))}
+@media (max-width:700px){body:has(#deck:not([hidden])) #pip{opacity:0}}
+@media (max-width:480px){#pip{width:120px;height:90px}}
 </style>
 </head>
 <body>
@@ -65,10 +84,14 @@ body{margin:0;background:#12071F;overflow:hidden}
   <a href="https://content.moldandyeast.com" rel="noopener">Visit content.moldandyeast.com for more</a>
   <a href="https://twitter.com/nilsedison" rel="noopener" target="_blank">Follow @nilsedison on Twitter</a>
   <a href="https://github.com/moldandyeast/infinite-stairs" rel="noopener" target="_blank">Source on GitHub</a>
-  <a href="/move/" rel="noopener">Move with it ↗</a>
+  <a href="/" rel="noopener">Classic ↗</a>
 </header>
 <canvas id="cv" role="img" aria-label="Strange Loop Parade: an endless marching band climbing an impossible Penrose stair, cut to a drone soundtrack with slot-machine and anime effects."></canvas>
-<button id="go" aria-label="Turn the sound on"><i>▶</i>Tap for sound</button>
+<button id="go" aria-label="Turn on the sound and the camera"><i>▶</i>Tap for sound + camera<small>Camera stays on your device</small></button>
+<video id="cam" playsinline muted aria-hidden="true"></video>
+<button id="bodyBtn" aria-pressed="false" title="Drive the knobs with your body (B)">◉ Body</button>
+<canvas id="pip" width="160" height="120" aria-label="Your tracked skeleton, mirrored"></canvas>
+<p id="bodyMsg" role="status" hidden></p>
 <button id="deckBtn" aria-expanded="false" aria-controls="deck">◉ Knobs</button>
 <section id="deck" hidden aria-label="Control deck">
   <div class="dh"><b>Strange Loop Parade · control deck</b><span class="dh-r"><button class="db" id="dRand" title="Randomize every knob (R)">Randomize</button><button class="db" id="dReset" title="Back to the default loop">Reset</button><button class="db" id="dMute" aria-pressed="false">Mute</button><button class="db" id="dHide" title="Hide the deck (K)">Hide</button></span></div>
@@ -77,5 +100,6 @@ body{margin:0;background:#12071F;overflow:hidden}
   <div class="drow"><label class="dl" for="dWords">Words</label><input id="dWords" type="text" maxlength="400" placeholder="Type your own slam words, one per beat" autocomplete="off" spellcheck="false"></div>
 </section>
 <script src="/parade.js"></script>
+<script type="module" src="/move/move.js"></script>
 
 </body></html>
