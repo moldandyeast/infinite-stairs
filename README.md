@@ -4,7 +4,7 @@ An endless marching band climbing an impossible Penrose stair, cut to a drone so
 
 Live: https://infinite-stairs.moldandyeast.com
 
-More at https://content.moldandyeast.com · follow [@nilsedison](https://twitter.com/nilsedison) on Twitter.
+More at https://content.moldandyeast.com · follow [@nilsedison](https://twitter.com/nilsedison) on Twitter · [source on GitHub](https://github.com/moldandyeast/infinite-stairs).
 
 ## Structure
 
